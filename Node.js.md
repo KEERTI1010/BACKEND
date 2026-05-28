@@ -60,7 +60,7 @@
 
 * Handles async tasks and callbacks.
 
-    * Flow:
+     Flow:
 
         * Tasks go to queue
         * Event loop checks queue
@@ -78,7 +78,7 @@ npm install express
 ```
 * **5. require()**
 
-Used to import modules/files.
+* Used to import modules/files.
 
 Example:
 ```jsx
@@ -86,10 +86,10 @@ const http = require("http");
 ```
 * **6. Modules**
 
-Reusable blocks of code in Node.js.
+* Reusable blocks of code in Node.js.
 
-Can use:
+* Can use:
 
-Built-in modules
-Third-party modules
-Own modules
+    * Built-in modules
+    * Third-party modules
+    * Own modules
