@@ -34,3 +34,62 @@
     * Test website in browser.
     * Upload files to web server using FTP/SFTP software.
     * Website becomes live on internet
+
+## Why Node.js is Popular
+* **1. Event-Driven**
+
+    * Runs code when events happen.
+        * Example:
+
+            * File read completed
+            * Request received
+* **2. Non-Blocking I/O**
+
+    * Node.js does not wait for one task to finish before starting another.
+
+        * Example:
+
+        * Can handle many users/requests at same time.
+
+         This makes Node.js:
+
+                * Fast
+                * Efficient
+
+* **3. Event Loop**
+
+* Handles async tasks and callbacks.
+
+    * Flow:
+
+        * Tasks go to queue
+        * Event loop checks queue
+        * Executes tasks one by one
+        
+* **4. npm**
+
+* npm = Node Package Manager
+
+* Used to install libraries/packages.
+
+Example:
+```jsx
+npm install express
+```
+* **5. require()**
+
+Used to import modules/files.
+
+Example:
+```jsx
+const http = require("http");
+```
+* **6. Modules**
+
+Reusable blocks of code in Node.js.
+
+Can use:
+
+Built-in modules
+Third-party modules
+Own modules
