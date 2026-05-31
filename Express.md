@@ -97,17 +97,17 @@
 
 * Routes essentially just match a request’s HTTP verb (e.g. GET or POST) and URL path to the appropriate set of middleware functions - the controllers
 
-```jsx
+    ```jsx
 
-app.get("/", (req, res) => res.send("Hello, world!"));
+    app.get("/", (req, res) => res.send("Hello, world!"));
 
-```
+    ```
 * app.get "/" ... tells us that this route will match any GET requests that go through the app router (which is our whole server!) to the / path. If instead we had the following:
 
- ```jsx
- app.post("/messages", (req, res) => res.send("This is where you can see any messages."));
+    ```jsx
+    app.post("/messages", (req, res) => res.send("This is where you can see any messages."));
 
-```
+    ```
 * That would tell us the route matches any POST requests to the /messages path of our app. If you sent a GET request to the /messages path, it would not match this route
 * Each HTTP verb has its own Express route method, and you can also use app.all() to make a route match all verbs
 
@@ -115,21 +115,25 @@ app.get("/", (req, res) => res.send("Hello, world!"));
 
 ### Route parameters
 
-```jsx
-app.get("/:username/messages", (req, res) => {
-  console.log(req.params);
-  res.end();
-});
-```
+    ```jsx
+
+    app.get("/:username/messages", (req, res) => {
+    console.log(req.params);
+    res.end();
+    });
+
+    ```
 * So : is used when that part of the URL can change. If the path is always fixed, then no need for :
 * here we can get diff user namess..
 
-```jsx
-app.get("/:username/messages/:messageId", (req, res) => {
-  console.log(req.params);
-  res.end();
-});
-```
+    ```jsx
+
+    app.get("/:username/messages/:messageId", (req, res) => {
+    console.log(req.params);
+    res.end();
+    });
+
+    ```
 * here we can get digg username and message ID
 
     ```jsx
@@ -152,18 +156,18 @@ app.get("/:username/messages/:messageId", (req, res) => {
 
 * While route parameters define the structure of the path, Query Parameters are used to sort, filter, or pass extra optional arguments to that path. They always appear at the very end of a URL
 
-```jsx
-Example:
+    ```jsx
+    Example:
 
-If a user goes to /odin/messages?sort=date&direction=ascending:
+    If a user goes to /odin/messages?sort=date&direction=ascending:
 
-Express still routes them to the /:username/messages path.
+    Express still routes them to the /:username/messages path.
 
-But it extracts the extra details and creates this object:
-req.query = { sort: "date", direction: "ascending" }
+    But it extracts the extra details and creates this object:
+    req.query = { sort: "date", direction: "ascending" }
 
-Note: If someone repeats a key (like ?sort=date&sort=likes), Express is smart enough to group them into an array: { sort: ["date", "likes"] }
-```
+    Note: If someone repeats a key (like ?sort=date&sort=likes), Express is smart enough to group them into an array: { sort: ["date", "likes"] }
+    ```
 
 ### The Real-World YouTube Example
 * The text uses YouTube to show you how you already use this every day:
@@ -260,6 +264,7 @@ Note: If someone repeats a key (like ?sort=date&sort=likes), Express is smart en
 * Middleware functions are the backbone of Express. They are functions that run sequentially after a request is received, but before the final response is sent
 
     ```jsx
+
     function myMiddleware(req, res, next) {
     // 1. Do something (log data, check auth, change req/res objects)
     req.customProperty = "Hello!";
@@ -267,6 +272,7 @@ Note: If someone repeats a key (like ?sort=date&sort=likes), Express is smart en
     // 2. Pass control to the next middleware in line
     next(); 
     }
+
     ```
 
 * Types of Middleware:
@@ -277,16 +283,17 @@ Note: If someone repeats a key (like ?sort=date&sort=likes), Express is smart en
 
 ### The next() Function Exploded
 * The text notes four ways to use next(), though you will mostly use the first two:
-```
-1. next() — Moves seamlessly to the next middleware function in line.
 
-2. next(err) — Skips all regular middleware and jumps straight to the Error Handling Middleware.
+    ```
+    1. next() — Moves seamlessly to the next middleware function in line.
 
-3. next('route') — Skips remaining middleware in the current route block but keeps processing matching paths.
+    2. next(err) — Skips all regular middleware and jumps straight to the Error Handling Middleware.
 
-4. next('router') — Skips everything inside a specific router file and jumps back to the parent app.js file
+    3. next('route') — Skips remaining middleware in the current route block but keeps processing matching paths.
 
-```
+    4. next('router') — Skips everything inside a specific router file and jumps back to the parent app.js file
+
+    ```
 
 ### Error Handling in Express
 * If an error happens during an asynchronous database operation, your application might crash. Express handles this using two main patterns.
@@ -325,26 +332,26 @@ Instead of writing try/catch in 50 different controllers, Express can catch erro
 
 * You can create a custom JavaScript Class that inherits from the built-in Error object but adds a custom statusCode:
 
-```jsx
-// 1. Define the Custom Error
-class CustomNotFoundError extends Error {
-  constructor(message) {
-    super(message);
-    this.statusCode = 404; // Custom property
-    this.name = "NotFoundError";
-  }
-}
+    ```jsx
+    // 1. Define the Custom Error
+    class CustomNotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.statusCode = 404; // Custom property
+        this.name = "NotFoundError";
+    }
+    }
 
-// 2. Throw it in your Controller
-if (!author) {
-  throw new CustomNotFoundError("Author not found"); 
-  // Express catches this and sends it to the global error handler
-}
+    // 2. Throw it in your Controller
+    if (!author) {
+    throw new CustomNotFoundError("Author not found"); 
+    // Express catches this and sends it to the global error handler
+    }
 
-// 3. Handle it dynamically in your Global Error Handler
-app.use((err, req, res, next) => {
-  // Uses the custom status code (404) if it exists, otherwise defaults to 500
-  res.status(err.statusCode || 500).send(err.message); 
-});
+    // 3. Handle it dynamically in your Global Error Handler
+    app.use((err, req, res, next) => {
+    // Uses the custom status code (404) if it exists, otherwise defaults to 500
+    res.status(err.statusCode || 500).send(err.message); 
+    });
 
-```
+    ```
