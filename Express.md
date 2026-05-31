@@ -91,3 +91,90 @@
     * Very lightweight
     * Less built-in features
     * Node is very fast
+
+
+## Routes
+
+* Routes essentially just match a request’s HTTP verb (e.g. GET or POST) and URL path to the appropriate set of middleware functions - the controllers
+
+```jsx
+
+app.get("/", (req, res) => res.send("Hello, world!"));
+
+```
+* app.get "/" ... tells us that this route will match any GET requests that go through the app router (which is our whole server!) to the / path. If instead we had the following:
+
+ ```jsx
+ app.post("/messages", (req, res) => res.send("This is where you can see any messages."));
+
+```
+* That would tell us the route matches any POST requests to the /messages path of our app. If you sent a GET request to the /messages path, it would not match this route
+* Each HTTP verb has its own Express route method, and you can also use app.all() to make a route match all verbs
+
+## Paths
+
+### Route parameters
+
+```jsx
+app.get("/:username/messages", (req, res) => {
+  console.log(req.params);
+  res.end();
+});
+```
+* So : is used when that part of the URL can change. If the path is always fixed, then no need for :
+* here we can get diff user namess..
+
+```jsx
+app.get("/:username/messages/:messageId", (req, res) => {
+  console.log(req.params);
+  res.end();
+});
+```
+* here we can get digg username and message ID
+
+    ```
+    Example :
+
+      Imagine you are building a social media site. You can't hardcode a separate URL path for every single user on Earth (e.g., /odin/messages, /thor/messages, etc.).
+
+    Instead, you use Route Parameters to create a placeholder or a wildcard in your URL structure.
+
+    How you write it in code: You use a colon (:) followed by a variable name.
+
+    "/:username/messages"
+
+    How Express reads it: When a user visits a URL, Express takes whatever is written in place of :username and stores it inside an object called req.params
+    ```
+
+### Query parameters
+
+* A **?** denotes the **start** of the query parameters and each query **separated** by an **&**
+
+* While route parameters define the structure of the path, Query Parameters are used to sort, filter, or pass extra optional arguments to that path. They always appear at the very end of a URL
+
+```
+Example:
+
+If a user goes to /odin/messages?sort=date&direction=ascending:
+
+Express still routes them to the /:username/messages path.
+
+But it extracts the extra details and creates this object:
+req.query = { sort: "date", direction: "ascending" }
+
+Note: If someone repeats a key (like ?sort=date&sort=likes), Express is smart enough to group them into an array: { sort: ["date", "likes"] }
+```
+
+### The Real-World YouTube Example
+* The text uses YouTube to show you how you already use this every day:
+
+    * When you watch a video, the URL looks like this: https://www.youtube.com/watch?v=xm3YgoEiEDc&t=424s
+
+        Behind the scenes, YouTube’s servers receive this request. Because of the ?, they parse the query parameters into an object like this:
+
+       ![alt text](image-1.png)
+
+## Diff
+* **Route Parameters** (req.params): Built into the URL path itself (/users/:id). Used to determine what resource you are looking at.
+
+* **Query Parameters** (req.query): Appended to the end of the URL (?search=shoes&size=10). Used to filter, sort, or modify how that resource is displayed.
