@@ -132,7 +132,7 @@ app.get("/:username/messages/:messageId", (req, res) => {
 ```
 * here we can get digg username and message ID
 
-    ```
+    ```jsx
     Example :
 
       Imagine you are building a social media site. You can't hardcode a separate URL path for every single user on Earth (e.g., /odin/messages, /thor/messages, etc.).
@@ -152,7 +152,7 @@ app.get("/:username/messages/:messageId", (req, res) => {
 
 * While route parameters define the structure of the path, Query Parameters are used to sort, filter, or pass extra optional arguments to that path. They always appear at the very end of a URL
 
-```
+```jsx
 Example:
 
 If a user goes to /odin/messages?sort=date&direction=ascending:
@@ -178,3 +178,173 @@ Note: If someone repeats a key (like ?sort=date&sort=likes), Express is smart en
 * **Route Parameters** (req.params): Built into the URL path itself (/users/:id). Used to determine what resource you are looking at.
 
 * **Query Parameters** (req.query): Appended to the end of the URL (?search=shoes&size=10). Used to filter, sort, or modify how that resource is displayed.
+
+
+## Controllers
+
+* The controller’s job is really to act as the ultimate middleman. It knows which questions it wants to ask the model, but lets the model do all the heavy lifting for actually solving those questions
+
+### Handling responses
+
+* When it comes to sending responses from our controllers, we have several methods at our disposal. Let’s explore some of the commonly used methods and their use cases.
+
+    * **res.send** - A general-purpose method for sending a response
+    * **res.json** - This is a more explicit way to respond to a request with JSON
+    * **res.redirect** - When we want to redirect the client to a different URL, this method allows for that capability
+    * **res.render** - res.render lets you render a view template and send the resulting HTML as the response
+    * **res.status** - This sets the response’s status code but does not end the request-response cycle by itself. We can chain other methods through this (e.g. res.status(404).send(...) but note that we can’t do res.send(...).status(404)). We can omit this if we wish to use the default status code of 200
+
+### Middleware
+* Middleware functions are a core concept in Express and play a crucial role in handling requests and responses. They operate between the incoming request and the final intended route handler
+
+* A middleware function typically takes three arguments (however, there is one that we will get into later that has four):
+
+    * **req** - The request object, representing the incoming HTTP request.
+    * **res** - The response object, representing the HTTP response that will be sent back to the client.
+    * **next** - The function that passes control to the next middleware function in the chain 
+
+
+
+## Diff btw Route and Controllers
+
+### **Routes**: The Traffic Cop
+* The route's only job is to listen for a request and forward it to the right place. It maps an HTTP method (GET, POST, PUT, DELETE) and a URL path to a specific function.
+
+* Responsibility: URL matching and routing.
+
+* What it cares about: “Is the user trying to GET /api/books or POST to /api/books?”
+
+* Code Example:
+
+    ```jsx
+    // routes/bookRoutes.js
+    const express = require('express');
+    const router = express.Router();
+    const { getAllBooks } = require('../controllers/bookController');
+
+    // Just matching the path to the controller function
+    router.get('/books', getAllBooks); 
+
+    module.exports = router;
+
+    ```
+
+## **Controllers**: The Brains
+
+* The controller contains the actual business logic. It takes the request, talks to the database (via your models), processes data, and sends back the final response (like JSON or an error message).
+
+* Responsibility: Processing data and deciding what to send back.
+
+* What it cares about: “Let me fetch the books from MongoDB, format them, and send a 200 OK status.”
+
+* Code Example:
+
+    ```jsx
+
+    const Book = require('../models/bookModel');
+
+    // The actual logic lives here
+    const getAllBooks = async (req, res) => {
+        try {
+            const books = await Book.find({});
+            res.status(200).json(books);
+        } catch (error) {
+            res.status(500).json({ message: "Server Error" });
+        }
+    };
+
+    module.exports = { getAllBooks };
+    ```
+
+### Middleware
+* Middleware functions are the backbone of Express. They are functions that run sequentially after a request is received, but before the final response is sent
+
+    ```jsx
+    function myMiddleware(req, res, next) {
+    // 1. Do something (log data, check auth, change req/res objects)
+    req.customProperty = "Hello!";
+    
+    // 2. Pass control to the next middleware in line
+    next(); 
+    }
+    ```
+
+* Types of Middleware:
+
+    * Application-level: Bound to the entire app using app.use(). Runs on every single request.
+
+    * Router-level: Bound only to specific routes (e.g., authorRouter.use())
+
+### The next() Function Exploded
+* The text notes four ways to use next(), though you will mostly use the first two:
+```
+1. next() — Moves seamlessly to the next middleware function in line.
+
+2. next(err) — Skips all regular middleware and jumps straight to the Error Handling Middleware.
+
+3. next('route') — Skips remaining middleware in the current route block but keeps processing matching paths.
+
+4. next('router') — Skips everything inside a specific router file and jumps back to the parent app.js file
+
+```
+
+### Error Handling in Express
+* If an error happens during an asynchronous database operation, your application might crash. Express handles this using two main patterns.
+
+1. Pattern A: The Try/Catch Block
+You wrap your controller logic in a standard JavaScript try/catch block. If something fails, you catch it manually
+
+    ```jsx
+
+    try {
+    const author = await db.getAuthorById(authorId);
+    res.send(author.name);
+    } catch (error) {
+    res.status(500).send("Internal Server Error");
+    }
+
+    ```
+
+2. Pattern B: Error-Handling Middleware (The Global Catch)
+Instead of writing try/catch in 50 different controllers, Express can catch errors globally. An Error Handler is a special middleware that must have exactly 4 arguments: (err, req, res, next)
+
+    ```jsx
+
+    // This goes at the VERY BOTTOM of your app.js file
+    app.use((err, req, res, next) => {
+    console.error(err);
+    res.status(500).send("Something went wrong globally!");
+    });
+
+    ```
+
+* Whenever an error is thrown inside an async function, Express automatically catches it and forwards it directly to this 4-argument function
+
+### Creating Custom Errors
+* The problem with a global error handler is that it usually sends a generic 500 Internal Server Error. What if an author wasn't found and you wanted to send a 404 Not Found?
+
+* You can create a custom JavaScript Class that inherits from the built-in Error object but adds a custom statusCode:
+
+```jsx
+// 1. Define the Custom Error
+class CustomNotFoundError extends Error {
+  constructor(message) {
+    super(message);
+    this.statusCode = 404; // Custom property
+    this.name = "NotFoundError";
+  }
+}
+
+// 2. Throw it in your Controller
+if (!author) {
+  throw new CustomNotFoundError("Author not found"); 
+  // Express catches this and sends it to the global error handler
+}
+
+// 3. Handle it dynamically in your Global Error Handler
+app.use((err, req, res, next) => {
+  // Uses the custom status code (404) if it exists, otherwise defaults to 500
+  res.status(err.statusCode || 500).send(err.message); 
+});
+
+```
